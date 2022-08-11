@@ -1,7 +1,9 @@
 import random
-from collections import Counter
 import re
 from typing import List, Tuple, Dict, Deque
+from math import inf
+from collections import Counter, defaultdict
+from functools import reduce
 
 """
     this is a solution for many of the problems in cracking the code interview and leetcode 
@@ -12,6 +14,9 @@ from typing import List, Tuple, Dict, Deque
     - re
     - typing
     - copy
+    - functools
+    - math
+    - random
 """
 
 
@@ -299,7 +304,7 @@ def merge_strings_test():
     print(merge_strings(s1, s2))
 
 
-# write a function that recives a string representing a number in Roman Numerals and returns the integer value of the number
+# This function recives a string representing a number in Roman Numerals and returns the integer value of the number
 def roman_to_int(s):
     # if len(s) == 0:
     #     return 0
@@ -337,20 +342,6 @@ def roman_to_int(s):
         else:
             roman_integer += roman_dict[sign]
     return roman_integer
-
-
-# test the roman_to_int function
-def roman_to_int_test():
-    print(roman_to_int('MCMXCIV'))
-    print(roman_to_int('MCMLIV'))
-    print(roman_to_int('MCMLXVIII'))
-    print(roman_to_int('MCMLXXXIX'))
-    print(roman_to_int('III'))
-    print(roman_to_int('IV'))
-    print(roman_to_int('IX'))
-    print(roman_to_int('X'))
-    print(roman_to_int('XI'))
-    print(roman_to_int('XV'))
 
 
 # write a function that convert a number to a string in Roman Numerals
@@ -395,11 +386,7 @@ def rotate_array_left(nums, k):
     return nums
 
 
-# test the rotate_array_left function
-def rotate_array_left_test():
-    print(rotate_array_left([1, 2, 3, 4, 5, 6, 7], 3))
-
-
+# This function moves all the zero's to the end of the array
 def clear_zeroes(nums):
     last_place = 0
     for i in range(len(nums)):
@@ -407,6 +394,301 @@ def clear_zeroes(nums):
             nums[i], nums[last_place] = nums[last_place], nums[i]
             last_place += 1
     return nums
+
+
+#####################################################################################################################
+# Given an array, rotate the array to the right by k steps, where k is non-negative.
+# This solution is O(kn) time and O(1) space, can use deque to solve in O(k) time and O(n) space.
+# We consider inserting an element to the end of the array as O(n) operation.
+def rotate(nums: List[int], k: int) -> None:
+    for i in range(k):
+        nums.insert(0, nums.pop())
+
+
+#####################################################################################################################
+# Given an integer array nums, return true if any value appears at least twice in the array,
+# and return false if every element is distinct.
+# This solution is O(nlog(n)) time and O(n) place
+# below you can see solution using hash table in O(n) time and O(n) space
+def containsDuplicate(nums: List[int]) -> bool:
+    nums = sorted(nums)  # in place sorting
+    perv = nums[0]
+    for i in range(1, len(nums)):
+        if (nums[i] == perv):
+            return True
+        perv = nums[i]
+    return False
+
+
+# counter_dict = Counter(nums)
+# return any(count > 1 for count in counter_dict.values()) has better avg case solution than sorting
+# any(nums.count(num) > 1 for num in nums)
+
+
+####################################################################################################################
+# You are given an integer array prices where prices[i] is the price of a given stock on the ith day.
+# On each day, you may decide to buy and/or sell the stock.
+# You can only hold at most one share of the stock at any time.
+# However, you can buy it then immediately sell it on the same day.
+# Find and return the maximum profit you can achieve.
+# This solution is O(n) time and O(1) space
+def maxProfit(prices: List[int]) -> int:
+    max_profit = 0
+    for index in range(1, len(prices)):
+        if (prices[index] > prices[index - 1]):
+            max_profit += (prices[index] - prices[index - 1])
+    return max_profit
+
+
+####################################################################################################################
+# You are given a large integer represented as an integer array digits,
+# where each digits[i] is the ith digit of the integer.
+# The digits are ordered from most significant to least significant in left-to-right order.
+# The large integer does not contain any leading 0's.
+# Increment the large integer by one and return the resulting array of digits.
+# This solution is O(n) time and O(1) space
+def plusOne(digits: List[int]) -> List[int]:
+    return list(str(int(reduce(lambda a, b: str(a) + str(b), digits)) + 1))
+
+
+####################################################################################################################
+# Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.
+# You may assume that each input would have exactly one solution, and you may not use the same element twice.
+# You can return the answer in any order.
+# This function is O(n) time and O(n) space
+def twoSum(nums: List[int], target: int) -> List[int]:
+    num_index_dict = dict()
+    for i, num in enumerate(nums):
+        if (num not in num_index_dict):
+            num_index_dict[num] = i
+        else:
+            if (num * 2 == target):
+                return [num_index_dict[num], i]
+    for key, value in num_index_dict.items():
+        if ((target - key) in num_index_dict and value != num_index_dict[target - key]):
+            return [value, num_index_dict[target - key]]
+
+
+###################################################################################################################
+# You are given an n x n 2D matrix representing an image, rotate the image by 90 degrees (clockwise).
+# You have to rotate the image in-place,
+# which means you have to modify the input 2D matrix directly. DO NOT allocate another 2D matrix and do the rotation.
+# This function is O(n^2) time and O(1) space
+def rotate(matrix: List[List[int]]) -> None:
+    """
+    Do not return anything, modify matrix in-place instead.
+    """
+    l, r = 0, len(matrix) - 1
+    while (l < r):
+        for i in range(r - l):
+            t, b = l, r
+            # rotateing in -90 degrees
+            top_left = matrix[t][l + i]
+
+            # replacing top left with bottom left
+            matrix[t][l + i] = matrix[b - i][l]
+
+            # replacing bottom left with bottom right
+            matrix[b - i][l] = matrix[b][r - i]
+
+            # replacing bottom right with top right
+            matrix[b][r - i] = matrix[t + i][r]
+
+            # replacing top right with top left
+            matrix[t + i][r] = top_left
+        l += 1
+        r -= 1
+
+
+# Write a function to find the longest common prefix string amongst an array of strings.
+# If there is no common prefix, return an empty string ""
+# This solution is O(n) time and O(1) space
+def longestCommonPrefix(strs: List[str]) -> str:
+    shortest_string = min(strs, key=lambda s: len(s))
+    res =""
+    for i in range(len(shortest_string)):
+        if any(s[i] != shortest_string[i] for s in strs):
+            return res
+        else:
+            res += shortest_string[i]
+    return res
+
+
+
+###################################################################################################################
+# Given an integer array nums, return true if there exists a triple of indices (i, j, k)
+# such that i < j < k and nums[i] < nums[j] < nums[k]. If no such indices exists, return false.
+# This function is O(n) time and O(1) space
+def increasingTriplet(nums: List[int]) -> bool:
+    first, second = inf, inf
+    for third in nums:
+        if third <= first:
+            first = third
+        elif third <= second:
+            second = third
+        else:
+            return True
+    return False
+
+
+###################################################################################################################
+# Given an integer array nums, return all the triplets [nums[i], nums[j], nums[k]]
+# such that i != j, i != k, and j != k, and nums[i] + nums[j] + nums[k] == 0.
+# This function is O(n^2) time and O(n) space
+def threeSum(nums: List[int]) -> List[List[int]]:
+    res = []
+    nums.sort()
+    for i, item in enumerate(nums):
+        if i > 0 and item == nums[i - 1]:
+            continue
+        l = i + 1
+        r = len(nums) - 1
+        if (nums[i] > 0):
+            break
+        while l < r:
+            three_sum = nums[l] + nums[r] + nums[i]
+            if three_sum > 0:
+                r -= 1
+            elif three_sum < 0:
+                l += 1
+            else:
+                res.append([nums[l], nums[r], nums[i]])
+                l += 1
+                # making sure we wont create duplicated threepels
+                while nums[l] == nums[l - 1] and l < r:
+                    l += 1
+
+    return res
+
+
+###################################################################################################################
+# Given an m x n integer matrix, if an element is 0, set its entire row and column to 0's.
+# You must do it in place.
+# This solution is O(m*n) time and O(1) space
+
+# A function that check if a matrix col contained zero's
+def zero_in_col(self, matrix: List[List[int]], index) -> bool:
+    for i in range(len(matrix)):
+        if matrix[i][index] == 0:
+            return True
+    return False
+
+
+# A function that color a matrix col with 0
+def color_matrix_col(matrix: List[List[int]], index) -> None:
+    for i in range(len(matrix)):
+        matrix[i][index] = 0
+
+
+def setZeroes(matrix: List[List[int]]) -> None:
+    """
+    Do not return anything, modify matrix in-place instead.
+    """
+    zero_at_row = 0 in matrix[0]
+    zero_at_col = zero_in_col(matrix, 0)
+
+    for row in range(1, len(matrix)):
+        for col in range(1, len(matrix[0])):
+            # Mark down all rows and cols that are going to be set to zero
+            if matrix[row][col] == 0:
+                matrix[row][0] = 0
+                matrix[0][col] = 0
+    # Color all the necessary rows
+    for i in range(1, len(matrix)):
+        if matrix[i][0] == 0:
+            matrix[i] = [0] * len(matrix[i])
+
+    # Color all the necessary rows
+    for j in range(1, len(matrix[0])):
+        if matrix[0][j] == 0:
+            color_matrix_col(matrix, j)
+    # color the first row and col if necessary
+    if zero_at_row:
+        matrix[0] = [0] * len(matrix[0])
+    if zero_at_col:
+        color_matrix_col(matrix, 0)
+
+
+###################################################################################################################
+# Given an array of strings strs, group the anagrams together. You can return the answer in any order.
+# An Anagram is a word or phrase formed by rearranging
+# the letters of a different word or phrase, typically using all the original letters exactly once.
+# This function is O(n) time and O(n) space`
+def groupAnagrams(strs: List[str]) -> List[List[str]]:
+    counter_dict = defaultdict(list)
+    for anagram in strs:
+        counter_dict[''.join(sorted(anagram))].append(anagram)
+    return [val for key, val in counter_dict.items()]
+
+
+###################################################################################################################
+# Given a string s, find the length of the longest substring without repeating characters.
+# This function is O(n) time and O(n) space
+def lengthOfLongestSubstring(s: str) -> int:
+    l = curr_max = 0
+    char_set = set()
+
+    for r in range(len(s)):
+        # removing characters from a the beginning of a string
+        while s[r] in char_set:
+            char_set.remove(s[l])
+            l += 1
+        # s[r] not in the set so we could add it to the set
+        char_set.add(s[r])
+        # r -l +1 is the length of the curr substring
+        curr_max = max(r - l + 1, curr_max)
+    return curr_max
+
+
+###################################################################################################################
+# Given a string s, return the longest palindromic substring in s.
+# This function is O(n) time and O(n) space
+def longestPalindrome(s: str) -> str:
+    # Sliding window technique solution
+    n = len(s)
+    if n <= 1:
+        return s
+
+    curr_len = res_len = 0
+    res = ""
+
+    # Choose a char to be the middle of the polindrom
+    for i in range(n):
+        # window pointers - the odd length polindrom
+        l, r = i, i
+        while l >= 0 and r < n and s[l] == s[r]:
+            curr_len = r - l + 1
+            if curr_len > res_len:
+                res = s[l:r + 1]
+                res_len = curr_len
+            l -= 1
+            r += 1
+
+        # window pointers - the even length polindrom
+        l, r = i, i + 1
+        while l >= 0 and r < n and s[l] == s[r]:
+            curr_len = r - l + 1
+            if curr_len > res_len:
+                res = s[l:r + 1]
+                res_len = curr_len
+            l -= 1
+            r += 1
+
+    return res
+
+
+# test the roman_to_int function
+def test_roman_to_int():
+    print(roman_to_int('MCMXCIV'))
+    print(roman_to_int('MCMLIV'))
+    print(roman_to_int('MCMLXVIII'))
+    print(roman_to_int('MCMLXXXIX'))
+    print(roman_to_int('III'))
+    print(roman_to_int('IV'))
+    print(roman_to_int('IX'))
+    print(roman_to_int('X'))
+    print(roman_to_int('XI'))
+    print(roman_to_int('XV'))
 
 
 # test Q_1_all_unique_str
@@ -500,7 +782,7 @@ def removeDuplicates_test():
 
 
 # test the int_to_roman function
-def int_to_roman_test():
+def test_int_to_roman():
     print(int_to_roman(1))
     print(int_to_roman(2))
     print(int_to_roman(3))
