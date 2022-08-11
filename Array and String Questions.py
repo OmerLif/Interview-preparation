@@ -505,14 +505,13 @@ def rotate(matrix: List[List[int]]) -> None:
 # This solution is O(n) time and O(1) space
 def longestCommonPrefix(strs: List[str]) -> str:
     shortest_string = min(strs, key=lambda s: len(s))
-    res =""
+    res = ""
     for i in range(len(shortest_string)):
         if any(s[i] != shortest_string[i] for s in strs):
             return res
         else:
             res += shortest_string[i]
     return res
-
 
 
 ###################################################################################################################
@@ -675,6 +674,52 @@ def longestPalindrome(s: str) -> str:
             r += 1
 
     return res
+
+
+###################################################################################################################
+# This is the solution of a famous google interview question.
+def bfs_vert(matrix, start_row, end_row, col, connected_islands, direction):
+    for row in range(start_row, end_row, direction):
+        if matrix[row][col] == 0:
+            return
+        else:
+            connected_islands.add((row, col))
+
+
+def bfs_hori(matrix, start_col, end_col, row, connected_islands, direction):
+    for col in range(start_col, end_col, direction):
+        if matrix[row][col] == 0:
+            return
+        else:
+            connected_islands.add((row, col))
+
+
+def remove_islands(matrix, connected_islands, rows_len, cols_len):
+    for row in range(1, rows_len - 1):
+        for col in range(1, cols_len - 1):
+            if matrix[row][col] == 1 and (row, col) not in connected_islands:
+                matrix[row][col] = 0
+
+
+def RemoveIslands(matrix):
+    # run bfs from each 1 on  the top row
+    connected_islands = set()
+    directions = {"UP": -1, "DOWN": 1, "LEFT": -1, "RIGHT": 1}
+    cols_len = len(matrix[0])
+    rows_len = len(matrix)
+    for i in range(cols_len):
+        if matrix[0][i] == 1:
+            bfs_vert(matrix, 1, rows_len - 2, i, connected_islands, directions["DOWN"])
+        if matrix[rows_len - 1][i] == 1:
+            bfs_vert(matrix, rows_len - 2, 1, i, connected_islands, directions["UP"])
+    for i in range(rows_len):
+        if matrix[i][0] == 1:
+            bfs_hori(matrix, 1, rows_len - 2, i, connected_islands, directions["RIGHT"])
+        if matrix[i][cols_len - 1] == 1:
+            bfs_hori(matrix, rows_len - 2, 1, i, connected_islands, directions["LEFT"])
+
+    remove_islands(matrix, connected_islands, rows_len, cols_len)
+    return matrix
 
 
 # test the roman_to_int function
